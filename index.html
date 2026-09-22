@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>সম্পত্তি বণ্টন — ইসলামিক শরীয়াহ অনুযায়ী</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body {
+    font-family: 'Segoe UI', 'Noto Sans Bengali', 'Hind Siliguri', sans-serif;
+    background: linear-gradient(135deg, #064e3b 0%, #065f46 50%, #047857 100%);
+    min-height: 100vh;
+  }
+  .card {
+    background: rgba(255, 255, 255, 0.97);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+  }
+  input[type="number"], select {
+    transition: border-color .2s, box-shadow .2s;
+  }
+  input[type="number"]:focus, select:focus {
+    outline: none;
+    border-color: #059669;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.25);
+  }
+  .result-row {
+    animation: fadeIn .35s ease;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .fraction-badge {
+    font-variant-numeric: tabular-nums;
+  }
+</style>
+</head>
+<body class="py-8 px-4">
+
+<div class="max-w-3xl mx-auto">
+
+  <!-- Header -->
+  <header class="text-center text-white mb-8">
+    <h1 class="text-3xl md:text-4xl font-bold mb-2">সম্পত্তি বণ্টন ক্যালকুলেটর</h1>
+    <p class="text-emerald-100 text-sm md:text-base">ইসলামিক শরীয়াহ (ফরায়েজ) অনুযায়ী উত্তরাধিকার হিসাব</p>
+  </header>
+
+  <!-- Input Card -->
+  <div class="card rounded-2xl p-6 md:p-8 mb-6">
+    <h2 class="text-lg font-semibold text-emerald-900 mb-4 border-b pb-2">তথ্য প্রদান করুন</h2>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+      <div>
+        <label for="landArea" class="block text-sm font-medium text-gray-700 mb-1">মোট জমির পরিমাণ</label>
+        <div class="flex">
+          <input type="number" id="landArea" min="0" step="any" placeholder="যেমন: ১০"
+            class="w-full border border-gray-300 rounded-l-lg px-3 py-2" />
+          <select id="landUnit" class="border border-l-0 border-gray-300 rounded-r-lg px-2 py-2 bg-gray-50 text-sm">
+            <option value="decimal">শতাংশ</option>
+            <option value="katha">কাঠা</option>
+            <option value="bigha">বিঘা</option>
+            <option value="acre">একর</option>
+            <option value="sqft">বর্গফুট</option>
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <label for="pricePerUnit" class="block text-sm font-medium text-gray-700 mb-1">প্রতি এককের মূল্য (টাকা)</label>
+        <input type="number" id="pricePerUnit" min="0" step="any" placeholder="যেমন: ৫০০০০০"
+          class="w-full border border-gray-300 rounded-lg px-3 py-2" />
+      </div>
+
+      <div>
+        <label for="sons" class="block text-sm font-medium text-gray-700 mb-1">পুত্র সংখ্যা</label>
+        <input type="number" id="sons" min="0" step="1" value="0"
+          class="w-full border border-gray-300 rounded-lg px-3 py-2" />
+      </div>
+
+      <div>
+        <label for="daughters" class="block text-sm font-medium text-gray-700 mb-1">কন্যা সংখ্যা</label>
+        <input type="number" id="daughters" min="0" step="1" value="0"
+          class="w-full border border-gray-300 rounded-lg px-3 py-2" />
+      </div>
+
+      <!-- Wife alive toggle -->
+      <div class="md:col-span-2">
+        <span class="block text-sm font-medium text-gray-700 mb-2">স্ত্রী (বৈবাহিক অবস্থা)</span>
+        <div class="flex flex-wrap items-center gap-3">
+          <label class="inline-flex items-center gap-2 cursor-pointer">
+            <input type="radio" name="wifeAlive" value="yes" class="accent-emerald-600 w-4 h-4" checked />
+            <span class="text-sm">জীবিত আছেন</span>
+          </label>
+          <label class="inline-flex items-center gap-2 cursor-pointer">
+            <input type="radio" name="wifeAlive" value="no" class="accent-emerald-600 w-4 h-4" />
+            <span class="text-sm">মৃত্যুবরণ করেছেন</span>
+          </label>
+          <div id="wifeCountWrap" class="flex items-center gap-2">
+            <label for="wives" class="text-sm text-gray-600">স্ত্রীর সংখ্যা:</label>
+            <input type="number" id="wives" min="1" max="4" step="1" value="1"
+              class="w-20 border border-gray-300 rounded-lg px-3 py-1.5" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <button id="calcBtn"
+      class="mt-6 w-full bg-emerald-600 hover:bg-emerald-700 active:scale-[.99] text-white font-semibold py-3 rounded-xl transition">
+      হিসাব করুন
+    </button>
+    <p id="errorMsg" class="hidden mt-3 text-sm text-red-600 font-medium text-center"></p>
+
+    <button id="convToggle" type="button"
+      class="mt-3 w-full border border-emerald-300 text-emerald-700 hover:bg-emerald-50 font-medium py-2.5 rounded-xl transition text-sm">
+      একক রূপান্তর দেখুন (শতাংশ ⇄ কাঠা ⇄ বিঘা) ▾
+    </button>
+  </div>
+
+  <!-- Unit Converter Card -->
+  <div id="converter" class="card rounded-2xl p-6 md:p-8 mb-6 hidden">
+    <h2 class="text-lg font-semibold text-emerald-900 mb-4 border-b pb-2">জমির একক রূপান্তর</h2>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
+      <div>
+        <label for="convValue" class="block text-sm font-medium text-gray-700 mb-1">পরিমাণ</label>
+        <input type="number" id="convValue" min="0" step="any" placeholder="যেমন: ১০"
+          class="w-full border border-gray-300 rounded-lg px-3 py-2" />
+      </div>
+      <div>
+        <label for="convFrom" class="block text-sm font-medium text-gray-700 mb-1">একক</label>
+        <select id="convFrom" class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white">
+          <option value="decimal">শতাংশ</option>
+          <option value="katha">কাঠা</option>
+          <option value="bigha">বিঘা</option>
+          <option value="acre">একর</option>
+          <option value="sqft">বর্গফুট</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="convResults" class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="bg-emerald-600 text-white">
+            <th class="text-left px-4 py-2 rounded-tl-lg">একক</th>
+            <th class="text-right px-4 py-2 rounded-tr-lg">পরিমাণ</th>
+          </tr>
+        </thead>
+        <tbody id="convTableBody" class="divide-y divide-gray-200"></tbody>
+      </table>
+    </div>
+
+    <p class="mt-4 text-xs text-gray-500">
+      হিসাব: ১ বিঘা = ২০ কাঠা = ৩৩ শতাংশ (প্রায়) = ১৪,৪০০ বর্গফুট · ১ কাঠা = ৭২০ বর্গফুট ·
+      ১ শতাংশ = ৪৩৫.৬ বর্গফুট · ১ একর = ১০০ শতাংশ = ৪৩,৫৬০ বর্গফুট
+    </p>
+  </div>
+
+  <!-- Results Card -->
+  <div id="results" class="card rounded-2xl p-6 md:p-8 hidden">
+    <h2 class="text-lg font-semibold text-emerald-900 mb-4 border-b pb-2">বণ্টনের ফলাফল</h2>
+
+    <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-4 mb-5 text-center">
+      <p class="text-sm text-emerald-700">মোট সম্পত্তির মূল্য</p>
+      <p id="totalValue" class="text-2xl md:text-3xl font-bold text-emerald-800"></p>
+      <p id="totalValueWords" class="text-sm text-emerald-600 mt-1"></p>
+    </div>
+
+    <div id="shareRows" class="space-y-3"></div>
+
+    <div id="residueNote" class="hidden mt-4 bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-800"></div>
+
+    <p class="mt-6 text-xs text-gray-500 leading-relaxed">
+      <strong>বিঃদ্রঃ</strong> এই হিসাবে শুধুমাত্র স্ত্রী, পুত্র ও কন্যা ওয়ারিস হিসেবে ধরা হয়েছে।
+      সন্তান থাকলে স্ত্রী (সবাই মিলে) ১/৮ অংশ পান; সন্তান না থাকলে ১/৪ অংশ পান।
+      অবশিষ্ট সম্পত্তি সন্তানদের মধ্যে পুত্র : কন্যা = ২ : ১ অনুপাতে বণ্টিত হয়।
+      পিতা-মাতা, ভাই-বোনসহ অন্যান্য ওয়ারিস থাকলে বণ্টন ভিন্ন হতে পারে — নির্ভুল ফয়সালার জন্য
+      অভিজ্ঞ আলেম বা ফরায়েজ বিশেষজ্ঞের পরামর্শ নিন।
+    </p>
+  </div>
+
+  <footer class="text-center text-emerald-100/70 text-xs mt-6">
+    ইসলামিক শরীয়াহ অনুযায়ী উত্তরাধিকার বণ্টন · ফরায়েজ ক্যালকুলেটর
+  </footer>
+</div>
+
+<script>
+/* ---------- Bengali numeral + word helpers ---------- */
+
+const BN_DIGITS = ['০','১','২','৩','৪','৫','৬','৭','৮','৯'];
+const toBn = n => String(n).replace(/\d/g, d => BN_DIGITS[d]);
+
+const BN_ONES = ['','এক','দুই','তিন','চার','পাঁচ','ছয়','সাত','আট','নয়','দশ',
+  'এগারো','বারো','তেরো','চৌদ্দ','পনেরো','ষোলো','সতেরো','আঠারো','উনিশ','বিশ',
+  'একুশ','বাইশ','তেইশ','চব্বিশ','পঁচিশ','ছাব্বিশ','সাতাশ','আটাশ','ঊনত্রিশ','ত্রিশ',
+  'একত্রিশ','বত্রিশ','তেত্রিশ','চৌত্রিশ','পঁয়ত্রিশ','ছত্রিশ','সাঁইত্রিশ','আটত্রিশ','ঊনচল্লিশ','চল্লিশ',
+  'একচল্লিশ','বিয়াল্লিশ','তেতাল্লিশ','চুয়াল্লিশ','পঁয়তাল্লিশ','ছেচল্লিশ','সাতচল্লিশ','আটচল্লিশ','ঊনপঞ্চাশ','পঞ্চাশ',
+  'একান্ন','বাহান্ন','তিপ্পান্ন','চুয়ান্ন','পঞ্চান্ন','ছাপ্পান্ন','সাতান্ন','আটান্ন','ঊনষাট','ষাট',
+  'একষট্টি','বাষট্টি','তেষট্টি','চৌষট্টি','পঁয়ষট্টি','ছেষট্টি','সাতষট্টি','আটষট্টি','ঊনসত্তর','সত্তর',
+  'একাত্তর','বাহাত্তর','তিয়াত্তর','চুয়াত্তর','পঁচাত্তর','ছিয়াত্তর','সাতাত্তর','আটাত্তর','ঊনাশি','আশি',
+  'একাশি','বিরাশি','তিরাশি','চুরাশি','পঁচাশি','ছিয়াশি','সাতাশি','আটাশি','ঊননব্বই','নব্বই',
+  'একানব্বই','বিরানব্বই','তিরানব্বই','চুরানব্বই','পঁচানব্বই','ছিয়ানব্বই','সাতানব্বই','আটানব্বই','নিরানব্বই'];
+
+function bnWords(num) {
+  num = Math.floor(num);
+  if (num === 0) return 'শূন্য';
+  const parts = [];
+  const crore = Math.floor(num / 1e7); num %= 1e7;
+  const lakh  = Math.floor(num / 1e5); num %= 1e5;
+  const hajar = Math.floor(num / 1e3); num %= 1e3;
+  const shoto = Math.floor(num / 100); num %= 100;
+  if (crore) parts.push(BN_ONES[crore] + ' কোটি');
+  if (lakh)  parts.push(BN_ONES[lakh] + ' লক্ষ');
+  if (hajar) parts.push(BN_ONES[hajar] + ' হাজার');
+  if (shoto) parts.push(BN_ONES[shoto] + ' শত');
+  if (num)   parts.push(BN_ONES[num]);
+  return parts.join(' ');
+}
+
+const fmtMoney = v => '৳ ' + toBn(Number(v.toFixed(2)).toLocaleString('en-IN', {maximumFractionDigits: 2}));
+
+/* ---------- Inheritance (faraid) logic ---------- */
+
+function calculate() {
+  const area   = parseFloat(document.getElementById('landArea').value);
+  const price  = parseFloat(document.getElementById('pricePerUnit').value);
+  const sons   = Math.max(0, parseInt(document.getElementById('sons').value) || 0);
+  const dtrs   = Math.max(0, parseInt(document.getElementById('daughters').value) || 0);
+  const alive  = document.querySelector('input[name="wifeAlive"]:checked').value === 'yes';
+  const wives  = alive ? Math.min(4, Math.max(1, parseInt(document.getElementById('wives').value) || 1)) : 0;
+
+  const err = document.getElementById('errorMsg');
+  const results = document.getElementById('results');
+  err.classList.add('hidden');
+
+  if (isNaN(area) || isNaN(price) || area <= 0 || price <= 0) {
+    err.textContent = 'অনুগ্রহ করে জমির পরিমাণ ও প্রতি এককের মূল্য সঠিকভাবে দিন।';
+    err.classList.remove('hidden');
+    results.classList.add('hidden');
+    return;
+  }
+  if (sons + dtrs === 0 && wives === 0) {
+    err.textContent = 'কমপক্ষে একজন ওয়ারিস (স্ত্রী, পুত্র বা কন্যা) উল্লেখ করুন।';
+    err.classList.remove('hidden');
+    results.classList.add('hidden');
+    return;
+  }
+
+  const total = area * price;
+  const hasChildren = (sons + dtrs) > 0;
+  const rows = [];
+  let remaining = total;
+
+  // Wife share: 1/8 if children exist, else 1/4 (divided equally among wives)
+  if (wives > 0) {
+    const wifeFraction = hasChildren ? 1/8 : 1/4;
+    const wifeTotal = total * wifeFraction;
+    remaining -= wifeTotal;
+    rows.push({
+      title: wives > 1 ? `স্ত্রীগণ (${toBn(wives)} জন — সবাই মিলে)` : 'স্ত্রী',
+      fraction: `মোট সম্পত্তির ${hasChildren ? '১/৮' : '১/৪'} অংশ`,
+      amount: wifeTotal,
+      perHead: wifeTotal / wives,
+      perLabel: 'প্রতি স্ত্রী পাবেন'
+    });
+  }
+
+  // Children: residue divided 2:1 (son : daughter)
+  if (hasChildren) {
+    const units = sons * 2 + dtrs;
+    const perUnit = remaining / units;
+    if (sons > 0) {
+      rows.push({
+        title: `পুত্রগণ (${toBn(sons)} জন — সবাই মিলে)`,
+        fraction: `অবশিষ্টের ${toBn(sons * 2)}/${toBn(units)} অংশ`,
+        amount: perUnit * 2 * sons,
+        perHead: perUnit * 2,
+        perLabel: 'প্রতি পুত্র পাবেন'
+      });
+    }
+    if (dtrs > 0) {
+      rows.push({
+        title: `কন্যাগণ (${toBn(dtrs)} জন — সবাই মিলে)`,
+        fraction: `অবশিষ্টের ${toBn(dtrs)}/${toBn(units)} অংশ`,
+        amount: perUnit * dtrs,
+        perHead: perUnit,
+        perLabel: 'প্রতি কন্যা পাবেন'
+      });
+    }
+    remaining = 0;
+  }
+
+  // Render
+  document.getElementById('totalValue').textContent = fmtMoney(total);
+  document.getElementById('totalValueWords').textContent = bnWords(total) + ' টাকা মাত্র';
+
+  const wrap = document.getElementById('shareRows');
+  wrap.innerHTML = '';
+  rows.forEach(r => {
+    const div = document.createElement('div');
+    div.className = 'result-row flex flex-col md:flex-row md:items-center justify-between gap-2 bg-gray-50 border border-gray-200 rounded-xl p-4';
+    div.innerHTML = `
+      <div>
+        <p class="font-semibold text-gray-800">${r.title}</p>
+        <p class="text-xs text-gray-500">${r.fraction}
+          <span class="fraction-badge inline-block bg-emerald-100 text-emerald-800 rounded px-2 py-0.5 ml-1">${r.perLabel}: ${fmtMoney(r.perHead)}</span>
+        </p>
+      </div>
+      <div class="text-right">
+        <p class="text-xl font-bold text-emerald-700">${fmtMoney(r.amount)}</p>
+        <p class="text-xs text-gray-500">${bnWords(r.amount)} টাকা</p>
+      </div>`;
+    wrap.appendChild(div);
+  });
+
+  const note = document.getElementById('residueNote');
+  if (remaining > 0.005) {
+    note.classList.remove('hidden');
+    note.innerHTML = `অবশিষ্ট <strong>${fmtMoney(remaining)}</strong> (${bnWords(remaining)} টাকা) — কোনো সন্তান না থাকায় এই অংশ শরীয়াহ অনুযায়ী অন্যান্য ওয়ারিসদের (পিতা-মাতা, ভাই-বোন ইত্যাদি) মধ্যে বণ্টনীয়।`;
+  } else {
+    note.classList.add('hidden');
+  }
+
+  results.classList.remove('hidden');
+  results.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+/* ---------- Unit converter ---------- */
+
+// Base unit: square feet
+const UNIT_SQFT = { decimal: 435.6, katha: 720, bigha: 14400, acre: 43560, sqft: 1 };
+const UNIT_NAMES = { decimal: 'শতাংশ', katha: 'কাঠা', bigha: 'বিঘা', acre: 'একর', sqft: 'বর্গফুট' };
+const UNIT_ORDER = ['decimal', 'katha', 'bigha', 'acre', 'sqft'];
+
+function fmtNum(v) {
+  const s = v >= 100 ? v.toLocaleString('en-IN', {maximumFractionDigits: 2})
+                     : Number(v.toFixed(4)).toString();
+  return toBn(s);
+}
+
+function renderConversion() {
+  const val = parseFloat(document.getElementById('convValue').value);
+  const from = document.getElementById('convFrom').value;
+  const tbody = document.getElementById('convTableBody');
+  tbody.innerHTML = '';
+  if (isNaN(val) || val <= 0) {
+    tbody.innerHTML = '<tr><td colspan="2" class="px-4 py-3 text-center text-gray-400">পরিমাণ দিন</td></tr>';
+    return;
+  }
+  const sqft = val * UNIT_SQFT[from];
+  UNIT_ORDER.forEach(u => {
+    const tr = document.createElement('tr');
+    tr.className = u === from ? 'bg-emerald-50 font-semibold' : 'hover:bg-gray-50';
+    tr.innerHTML = `<td class="px-4 py-2.5">${UNIT_NAMES[u]}</td>
+                    <td class="px-4 py-2.5 text-right text-emerald-800 font-medium">${fmtNum(sqft / UNIT_SQFT[u])}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+/* ---------- Wire up ---------- */
+
+document.getElementById('calcBtn').addEventListener('click', calculate);
+document.getElementById('convToggle').addEventListener('click', () => {
+  const c = document.getElementById('converter');
+  c.classList.toggle('hidden');
+  document.getElementById('convToggle').innerHTML =
+    c.classList.contains('hidden')
+      ? 'একক রূপান্তর দেখুন (শতাংশ ⇄ কাঠা ⇄ বিঘা) ▾'
+      : 'একক রূপান্তর লুকান ▴';
+  if (!c.classList.contains('hidden')) {
+    // Pre-fill with the land area the user already entered
+    const area = document.getElementById('landArea').value;
+    if (area) {
+      document.getElementById('convValue').value = area;
+      document.getElementById('convFrom').value = document.getElementById('landUnit').value;
+    }
+    renderConversion();
+  }
+});
+document.getElementById('convValue').addEventListener('input', renderConversion);
+document.getElementById('convFrom').addEventListener('change', renderConversion);
+document.querySelectorAll('input[name="wifeAlive"]').forEach(r =>
+  r.addEventListener('change', e => {
+    document.getElementById('wifeCountWrap').style.display = e.target.value === 'yes' ? 'flex' : 'none';
+  })
+);
+document.querySelectorAll('input, select').forEach(el =>
+  el.addEventListener('keydown', e => { if (e.key === 'Enter') calculate(); })
+);
+</script>
+</body>
+</html>
